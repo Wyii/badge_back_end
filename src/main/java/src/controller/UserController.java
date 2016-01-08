@@ -8,6 +8,7 @@ import src.Domain.Record;
 import src.Domain.User;
 import src.service.RecordRepository;
 import src.service.UserRepository;
+import src.service.WechatResourceService;
 
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
@@ -25,14 +26,12 @@ import java.util.Map;
 @RequestMapping("/")
 public class UserController {
 
-    private static String weixinUserURL = "https://qyapi.weixin.qq.com/cgi-bin/user/list?access_token=ACCESS_TOKEN&department_id=DEPARTMENT_ID&fetch_child=FETCH_CHILD&status=STATUS";
-
-    private JsonGenerator jsonGenerator = null;
-
     @Autowired
     UserRepository userRepository;
     @Autowired
     RecordRepository recordRepository;
+    @Autowired
+    WechatResourceService wechatResourceService;
 
     @RequestMapping("/user/{id}")
     public Map view(@PathVariable("id") Long id,ServletResponse res) {
@@ -113,5 +112,11 @@ public class UserController {
         HttpServletResponse response = (HttpServletResponse) res;
         response.setHeader("Access-Control-Allow-Origin", "*");
         return savedUserList;
+    }
+
+    @RequestMapping(value = "test")
+    public ArrayList test(){
+       return wechatResourceService.getMembers();
+
     }
 }

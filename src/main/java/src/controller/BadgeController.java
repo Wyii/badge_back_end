@@ -23,6 +23,8 @@ public class BadgeController {
     public List<Badge> all(ServletResponse res){
         HttpServletResponse response = (HttpServletResponse) res;
         response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods","POST");
+        response.setHeader("Access-Control-Allow-Headers","x-requested-with,content-type");
         return (List<Badge>) badgeRepository.findAll();
     }
 }
