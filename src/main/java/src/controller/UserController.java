@@ -115,8 +115,8 @@ public class UserController {
     }
 
     @RequestMapping(value = "test")
-    public ArrayList test(){
-       return wechatResourceService.getMembers();
+    public String test(@RequestParam String code){
+       return wechatResourceService.getCurrentUser(code);
 
     }
 }

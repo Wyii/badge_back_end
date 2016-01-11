@@ -17,8 +17,13 @@ import java.util.HashMap;
  */
 @Service
 public class WechatResourceService {
+
+    //获取企业号成员详情
     private static String WEXIN_USER = "https://qyapi.weixin.qq.com/cgi-bin/user/list?access_token=#ACCESS_TOKEN#&department_id=#DEPARTMENT_ID#&fetch_child=#FETCH_CHILD#&status=#STATUS#";
+    //获取AccessToken
     private static String ACCESSTOKEN = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=#id#&corpsecret=#secrect#";
+    //根据code获取成员信息
+    private static String CURRENT_USER = "https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=#ACCESS_TOKEN#&code=#CODE#";
 
     private static String secret = "4EWw34BFbCKto0BvB0f5WxAl2I2_RWcCa5JBdLNp_w9th9PuJwsRq1Ek7NXVOmD7";
     private static String corpId = "wxd6e1a181d0c0d42f";
@@ -59,7 +64,7 @@ public class WechatResourceService {
         ArrayList userList = new ArrayList();
         try {
             URL obj = new URL(url.replace("#ACCESS_TOKEN#",getAccessToken())
-                                    .replace("#DEPARTMENT_ID#","1")
+                                    .replace("#DEPARTMENT_ID#", "1")
                                     .replace("#FETCH_CHILD#","1")
                                     .replace("#STATUS#","0"));
 
@@ -84,5 +89,30 @@ public class WechatResourceService {
             e.printStackTrace();
         }
         return userList;
+    }
+
+    public String getCurrentUser(String code){
+        String url = CURRENT_USER;
+        String userId = "";
+        try {
+            URL obj = new URL(url.replace("#ACCESS_TOKEN#",getAccessToken())
+                                .replace("#CODE#",code));
+            HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+            InputStreamReader insr = new InputStreamReader(con.getInputStream());
+            int respInt = insr.read();
+            StringBuffer result = new StringBuffer();
+            while (respInt != -1){
+                result.append((char)respInt);
+                respInt = insr.read();
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            HashMap resultMap = mapper.readValue(result.toString(), HashMap.class);
+            userId = (String) resultMap.get("UserId");
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return userId;
     }
 }
