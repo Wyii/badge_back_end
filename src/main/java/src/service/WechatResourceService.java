@@ -29,7 +29,8 @@ public class WechatResourceService {
     private static String corpId = "wxd6e1a181d0c0d42f";
     private JsonGenerator jsonGenerator = null;
 
-    public static ArrayList USERLIST = new ArrayList();
+    public static ArrayList<HashMap> USERLIST = new ArrayList();
+
 
     public String getAccessToken(){
         String url = ACCESSTOKEN;

@@ -13,13 +13,13 @@ public class Record implements Serializable{
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "to_user_id")
-    private User toUser;
+//    @ManyToOne
+//    @JoinColumn(name = "to_user_id")
+    private String toUser;
 
-    @ManyToOne
-    @JoinColumn(name = "from_user_id")
-    private User fromUser;
+//    @ManyToOne
+//    @JoinColumn(name = "from_user_id")
+    private String fromUser;
 
     @ManyToOne
     @JoinColumn(name = "badge_id")
@@ -42,19 +42,19 @@ public class Record implements Serializable{
         this.id = id;
     }
 
-    public User getToUser() {
+    public String getToUser() {
         return toUser;
     }
 
-    public void setToUser(User toUser) {
+    public void setToUser(String toUser) {
         this.toUser = toUser;
     }
 
-    public User getFromUser() {
+    public String getFromUser() {
         return fromUser;
     }
 
-    public void setFromUser(User fromUser) {
+    public void setFromUser(String fromUser) {
         this.fromUser = fromUser;
     }
 
