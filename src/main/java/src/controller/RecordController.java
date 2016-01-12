@@ -18,7 +18,7 @@ import java.util.HashMap;
  * Created by wyiss on 15/12/24.
  */
 @RestController
-@RequestMapping(value = "/record")
+@RequestMapping(value = "/records")
 public class RecordController {
 
     @Autowired

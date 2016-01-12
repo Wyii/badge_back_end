@@ -19,7 +19,7 @@ public class BadgeController {
     @Autowired
     BadgeRepository badgeRepository;
 
-    @RequestMapping(value = "/badge/all")
+    @RequestMapping(value = "/badges")
     public List<Badge> all(ServletResponse res){
         HttpServletResponse response = (HttpServletResponse) res;
         response.setHeader("Access-Control-Allow-Origin", "*");

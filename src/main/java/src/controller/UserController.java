@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import src.Domain.Record;
 import src.Domain.User;
 import src.service.RecordRepository;
@@ -11,6 +12,8 @@ import src.service.UserRepository;
 import src.service.WechatResourceService;
 
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -115,30 +118,32 @@ public class UserController {
 //        return savedUserList;
 //    }
 
-    @RequestMapping(value = "currentuser")
-    public HashMap user(@RequestParam String code){
+    @RequestMapping(value = "users/currentuser")
+    public HashMap user(@RequestParam String code, HttpServletResponse response, HttpServletRequest request){
         String userId = wechatResourceService.getCurrentUser(code);
         wechatResourceService.getMembers();
+        response.addCookie(new Cookie("X_CURRENT_USER_ID",userId));
         for (int i = 0;i < wechatResourceService.USERLIST.size();i++){
            if (userId.equals(wechatResourceService.USERLIST.get(i).get("userid"))){
+               response.addCookie(new Cookie("X_CURRENT_USER_ID",userId));
                return wechatResourceService.USERLIST.get(i);
            }
         }
        return null;
     }
 
-    @RequestMapping(value = "userlist")
-    public ArrayList userlist(){
+    @RequestMapping(value = "users")
+    public ArrayList userlist(HttpServletResponse response,HttpServletRequest request){
         return wechatResourceService.getMembers();
 
     }
 
-    @RequestMapping(value = "badge")
-    public List<Record> badgeListByUser(@RequestParam String user){
-        return recordRepository.findByToUser(user);
+    @RequestMapping(value = "users/{userId}")
+    public List<Record> badgeListByUser(@PathVariable("userId") String userId){
+        return recordRepository.findByToUser(userId);
     }
 
-    @RequestMapping(value = "userlistWithBadge")
+    @RequestMapping(value = "users/badged")
     public List<Record> userListWithBadge(){
         return recordRepository.findAllBadgedUser();
     }
