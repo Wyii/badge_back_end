@@ -25,11 +25,17 @@ public class WechatResourceService {
     //根据code获取成员信息
     private static String CURRENT_USER = "https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=#ACCESS_TOKEN#&code=#CODE#";
 
-    private static String secret = "4EWw34BFbCKto0BvB0f5WxAl2I2_RWcCa5JBdLNp_w9th9PuJwsRq1Ek7NXVOmD7";
-    private static String corpId = "wxd6e1a181d0c0d42f";
+//    private static String secret = "4EWw34BFbCKto0BvB0f5WxAl2I2_RWcCa5JBdLNp_w9th9PuJwsRq1Ek7NXVOmD7";
+//    private static String corpId = "wxd6e1a181d0c0d42f";
+
+    //MIZI
+    private static String corpId = "wx44d125e53237e988";
+    private static String secret = "pobyKsmqh09nWh-EdhAEhwLhNki_Cy_oxdoJtKqHseK0sUGNiPR13K-8PJUbNsW-";
+
     private JsonGenerator jsonGenerator = null;
 
     public static ArrayList<HashMap> USERLIST = new ArrayList();
+    public static HashMap USERMAP = new HashMap();
 
 
     public String getAccessToken(){
@@ -84,6 +90,10 @@ public class WechatResourceService {
             HashMap resultMap =  mapper.readValue(result.toString(), HashMap.class);
             userList = (ArrayList) resultMap.get("userlist");
             USERLIST = userList;
+            for (int i = 0; i < userList.size();i ++ ){
+                String key = (String) ((HashMap)userList.get(i)).get("userid");
+                USERMAP.put(key,userList.get(i));
+            }
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {

@@ -5,6 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import src.Domain.Record;
 import src.Domain.User;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -13,6 +14,6 @@ import java.util.List;
 public interface RecordRepository extends CrudRepository<Record,Long>{
     List<Record> findByToUser(String user);
 
-    @Query("select r.toUser,count(r.toUser) from Record r group by r.toUser ")
-    List<Record> findAllBadgedUser();
+    @Query("select r.toUser as userId,count(r.toUser) as count from Record r group by r.toUser ")
+    List findAllBadgedUser();
 }

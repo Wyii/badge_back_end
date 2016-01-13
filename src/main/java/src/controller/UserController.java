@@ -11,6 +11,7 @@ import src.service.RecordRepository;
 import src.service.UserRepository;
 import src.service.WechatResourceService;
 
+import javax.persistence.Entity;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -132,6 +133,7 @@ public class UserController {
        return null;
     }
 
+    //获取所有user
     @RequestMapping(value = "users")
     public ArrayList userlist(HttpServletResponse response,HttpServletRequest request){
         return wechatResourceService.getMembers();
@@ -139,12 +141,60 @@ public class UserController {
     }
 
     @RequestMapping(value = "users/{userId}")
+    public HashMap userInfo(@PathVariable("userId") String userId){
+        for (int i = 0;i < wechatResourceService.USERLIST.size();i++){
+            if (userId.equals(wechatResourceService.USERLIST.get(i).get("userid"))){
+                return wechatResourceService.USERLIST.get(i);
+            }
+        }
+        return null;
+    }
+
+    @RequestMapping(value = "users/{userId}/badges")
     public List<Record> badgeListByUser(@PathVariable("userId") String userId){
-        return recordRepository.findByToUser(userId);
+        ArrayList<Record> badgelist = (ArrayList<Record>) recordRepository.findByToUser(userId);
+        ArrayList result = new ArrayList();
+        for (int i = 0;i < badgelist.size();i ++){
+            HashMap recordMap = new HashMap();
+            recordMap.put("id",badgelist.get(i).getId());
+            recordMap.put("toUser",badgelist.get(i).getToUser());
+            recordMap.put("fromUser",wechatResourceService.USERMAP.get(badgelist.get(i).getFromUser()));
+            recordMap.put("badge",badgelist.get(i).getBadge());
+            recordMap.put("comment",badgelist.get(i).getComment());
+            recordMap.put("dateCreated",badgelist.get(i).getDateCreated());
+            recordMap.put("lastUpdated",badgelist.get(i).getLastUpdated());
+            result.add(recordMap);
+        }
+
+        return result;
     }
 
     @RequestMapping(value = "users/badged")
-    public List<Record> userListWithBadge(){
-        return recordRepository.findAllBadgedUser();
+    public ArrayList userListWithBadge(){
+        ArrayList ulwb = (ArrayList) recordRepository.findAll();
+        ArrayList result = new ArrayList();
+
+        HashMap<String,Object> user = new HashMap();
+        HashMap<String,Integer> badgeCount = new HashMap();
+
+        for (int i = 0;i < ulwb.size(); i ++){
+            String key = ((Record)ulwb.get(i)).getToUser();
+            if (badgeCount.containsKey(key)){
+                badgeCount.put(key,badgeCount.get(key) + 1);
+            }else {
+                badgeCount.put(key,1);
+            }
+            if (!user.containsKey(key)){
+                user.put(key,wechatResourceService.USERMAP.get(key));
+            }
+        }
+
+        for (Map.Entry entity : user.entrySet()){
+            HashMap temp = new HashMap();
+            temp.put("userInfo",entity.getValue());
+            temp.put("badgeCount",badgeCount.get(entity.getKey()));
+            result.add(temp);
+        }
+        return result;
     }
 }
