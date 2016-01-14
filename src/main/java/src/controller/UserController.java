@@ -171,18 +171,24 @@ public class UserController {
 
     @RequestMapping(value = "users/badged")
     public ArrayList userListWithBadge(){
-        ArrayList ulwb = (ArrayList) recordRepository.findAll();
+        ArrayList recordList = (ArrayList) recordRepository.findAll();
         ArrayList result = new ArrayList();
 
         HashMap<String,Object> user = new HashMap();
         HashMap<String,Integer> badgeCount = new HashMap();
+        HashMap<String,ArrayList> badges = new HashMap<>();
 
-        for (int i = 0;i < ulwb.size(); i ++){
-            String key = ((Record)ulwb.get(i)).getToUser();
+        for (int i = 0;i < recordList.size(); i ++){
+            Long badgeId = ((Record)recordList.get(i)).getBadge().getId();
+            String key = ((Record)recordList.get(i)).getToUser();
             if (badgeCount.containsKey(key)){
-                badgeCount.put(key,badgeCount.get(key) + 1);
+                badgeCount.put(key, badgeCount.get(key) + 1);
+                badges.get(key).add(badgeId);
             }else {
                 badgeCount.put(key,1);
+                ArrayList badgeIds = new ArrayList();
+                badgeIds.add(badgeId);
+                badges.put(key,badgeIds);
             }
             if (!user.containsKey(key)){
                 user.put(key,wechatResourceService.USERMAP.get(key));
@@ -193,6 +199,7 @@ public class UserController {
             HashMap temp = new HashMap();
             temp.put("userInfo",entity.getValue());
             temp.put("badgeCount",badgeCount.get(entity.getKey()));
+            temp.put("badges",badges.get(entity.getKey()));
             result.add(temp);
         }
         return result;
