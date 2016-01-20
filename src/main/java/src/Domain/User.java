@@ -26,6 +26,7 @@ public class User implements Serializable{
     private String avatar;
     private int status;
 
+
     @OneToMany(mappedBy = "toUser",cascade=CascadeType.ALL,fetch=FetchType.LAZY)
     private Set<Record> records1 = new HashSet<Record>();
 
