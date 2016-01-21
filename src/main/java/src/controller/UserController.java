@@ -140,7 +140,7 @@ public class UserController {
 
     }
 
-    @RequestMapping(value = "users/{userId}")
+    @RequestMapping(value = "users/{userId:.+}")
     public HashMap userInfo(@PathVariable("userId") String userId){
         for (int i = 0;i < wechatResourceService.USERLIST.size();i++){
             if (userId.equals(wechatResourceService.USERLIST.get(i).get("userid"))){

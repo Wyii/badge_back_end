@@ -16,6 +16,7 @@ import src.Domain.User;
  * Created by wyiss on 15/12/23.
  */
 @SpringBootApplication
+@EnableAutoConfiguration
 public class Application{
 
 

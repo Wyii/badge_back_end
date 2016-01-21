@@ -29,8 +29,8 @@ public class WechatResourceService {
 //    private static String corpId = "wxd6e1a181d0c0d42f";
 
     //MIZI
-    private static String corpId = "wx44d125e53237e988";
-    private static String secret = "pobyKsmqh09nWh-EdhAEhwLhNki_Cy_oxdoJtKqHseK0sUGNiPR13K-8PJUbNsW-";
+    private static String corpId = "wx5ea398be4315d16d";
+    private static String secret = "vJpYZOuweZPp42g83atLK08pXqAK3oifHMn80R2R6jyNl3qKR5LDtdS0Y4qX8OZP";
 
     private JsonGenerator jsonGenerator = null;
 
