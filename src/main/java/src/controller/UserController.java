@@ -119,27 +119,54 @@ public class UserController {
 //        return savedUserList;
 //    }
 
+    //当前user信息
     @RequestMapping(value = "users/currentuser")
     public HashMap user(@RequestParam String code, HttpServletResponse response, HttpServletRequest request){
+        HashMap result = new HashMap();
         String userId = wechatResourceService.getCurrentUser(code);
         wechatResourceService.getMembers();
         response.addCookie(new Cookie("X_CURRENT_USER_ID",userId));
         for (int i = 0;i < wechatResourceService.USERLIST.size();i++){
-           if (userId.equals(wechatResourceService.USERLIST.get(i).get("userid"))){
-               response.addCookie(new Cookie("X_CURRENT_USER_ID",userId));
-               return wechatResourceService.USERLIST.get(i);
-           }
+            if (userId.equals(wechatResourceService.USERLIST.get(i).get("userid"))){
+                response.addCookie(new Cookie("X_CURRENT_USER_ID",userId));
+                result.put("user", wechatResourceService.USERLIST.get(i)) ;
+            }
         }
-       return null;
+        ArrayList recordList = (ArrayList) recordRepository.findAll();
+        int badgeCount = 0;
+        int badgedCount = 0;
+
+        for(int i = 0; i < recordList.size();i++){
+            String toUser = ((Record)recordList.get(i)).getToUser();
+            String fromUser = ((Record)recordList.get(i)).getToUser();
+            if (userId.equals(toUser)) badgedCount++;
+            if (userId.equals(fromUser)) badgeCount++;
+        }
+        result.put("badgeCount",badgeCount);
+        result.put("badgedCount",badgedCount);
+
+       return result;
     }
 
     //获取所有user
     @RequestMapping(value = "users")
     public ArrayList userlist(HttpServletResponse response,HttpServletRequest request){
         return wechatResourceService.getMembers();
-
     }
 
+    //获取所有user
+    @RequestMapping(value = "users/{userId:.+}/department")
+    public ArrayList userlistByDepartment(@PathVariable("userId") String user,HttpServletResponse response,HttpServletRequest request){
+        wechatResourceService.getMembers();
+        ArrayList departments = (ArrayList) wechatResourceService.USERMAP.get(user).get("department");
+        ArrayList result = new ArrayList();
+        for (int i = 0;i < departments.size();i++){
+            result.add(wechatResourceService.getMembersByDepartment(departments.get(i)+""));
+        }
+        return result;
+    }
+
+    //根据userId获取userinfo
     @RequestMapping(value = "users/{userId:.+}")
     public HashMap userInfo(@PathVariable("userId") String userId){
         for (int i = 0;i < wechatResourceService.USERLIST.size();i++){
@@ -150,7 +177,8 @@ public class UserController {
         return null;
     }
 
-    @RequestMapping(value = "users/{userId}/badges")
+    //获取当前user的所有徽章
+    @RequestMapping(value = "users/{userId:.+}/badged")
     public List<Record> badgeListByUser(@PathVariable("userId") String userId){
         ArrayList<Record> badgelist = (ArrayList<Record>) recordRepository.findByToUser(userId);
         ArrayList result = new ArrayList();
@@ -169,15 +197,51 @@ public class UserController {
         return result;
     }
 
+    //获取当前user的所有发出的徽章
+    @RequestMapping(value = "users/{userId:.+}/badges")
+    public List<Record> badgeListByFromUser(@PathVariable("userId") String userId){
+        ArrayList<Record> badgelist = (ArrayList<Record>) recordRepository.findByFromUser(userId);
+        ArrayList result = new ArrayList();
+        for (int i = 0;i < badgelist.size();i ++){
+            HashMap recordMap = new HashMap();
+            recordMap.put("id",badgelist.get(i).getId());
+            recordMap.put("toUser",badgelist.get(i).getToUser());
+            recordMap.put("fromUser",wechatResourceService.USERMAP.get(badgelist.get(i).getFromUser()));
+            recordMap.put("badge",badgelist.get(i).getBadge());
+            recordMap.put("comment",badgelist.get(i).getComment());
+            recordMap.put("dateCreated",badgelist.get(i).getDateCreated());
+            recordMap.put("lastUpdated",badgelist.get(i).getLastUpdated());
+            result.add(recordMap);
+        }
+
+        return result;
+    }
+
+    //被评论列表
     @RequestMapping(value = "users/badged")
     public ArrayList userListWithBadge(){
-        ArrayList recordList = (ArrayList) recordRepository.findAll();
+        HashMap info = userAndBadgeInfo();
         ArrayList result = new ArrayList();
 
+        HashMap<String,Object> user = (HashMap<String, Object>) info.get("user");
+        HashMap<String,Integer> badgeCount = (HashMap<String, Integer>) info.get("badgeCount");
+        HashMap<String,ArrayList> badges = (HashMap<String, ArrayList>) info.get("badges");
+
+        for (Map.Entry entity : user.entrySet()){
+            HashMap temp = new HashMap();
+            temp.put("userInfo",entity.getValue());
+            temp.put("badgeCount",badgeCount.get(entity.getKey()));
+            temp.put("badges",badges.get(entity.getKey()));
+            result.add(temp);
+        }
+        return result;
+    }
+
+    private HashMap userAndBadgeInfo(){
+        ArrayList recordList = (ArrayList) recordRepository.findAll();
         HashMap<String,Object> user = new HashMap();
         HashMap<String,Integer> badgeCount = new HashMap();
         HashMap<String,ArrayList> badges = new HashMap<>();
-
         for (int i = 0;i < recordList.size(); i ++){
             Long badgeId = ((Record)recordList.get(i)).getBadge().getId();
             String key = ((Record)recordList.get(i)).getToUser();
@@ -194,14 +258,10 @@ public class UserController {
                 user.put(key,wechatResourceService.USERMAP.get(key));
             }
         }
-
-        for (Map.Entry entity : user.entrySet()){
-            HashMap temp = new HashMap();
-            temp.put("userInfo",entity.getValue());
-            temp.put("badgeCount",badgeCount.get(entity.getKey()));
-            temp.put("badges",badges.get(entity.getKey()));
-            result.add(temp);
-        }
+        HashMap result = new HashMap();
+        result.put("user",user);
+        result.put("badgeCount",badgeCount);
+        result.put("badges",badges);
         return result;
     }
 }

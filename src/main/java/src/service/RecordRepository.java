@@ -13,6 +13,7 @@ import java.util.List;
  */
 public interface RecordRepository extends CrudRepository<Record,Long>{
     List<Record> findByToUser(String user);
+    List<Record> findByFromUser(String user);
 
     @Query("select r.toUser as userId,count(r.toUser) as count from Record r group by r.toUser ")
     List findAllBadgedUser();

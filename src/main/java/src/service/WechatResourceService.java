@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -35,7 +36,10 @@ public class WechatResourceService {
     private JsonGenerator jsonGenerator = null;
 
     public static ArrayList<HashMap> USERLIST = new ArrayList();
-    public static HashMap USERMAP = new HashMap();
+    public static HashMap<String,HashMap> USERMAP = new HashMap();
+    public static HashMap<String,ArrayList> DEPARTMENTMAP = new HashMap();
+
+    public static int requestCount = 0;
 
 
     public String getAccessToken(){
@@ -67,6 +71,13 @@ public class WechatResourceService {
     }
 
     public ArrayList getMembers(){
+        if (USERLIST.size() > 0){
+            if (requestCount < 20) {
+                return USERLIST;
+            }else {
+                requestCount = 0;
+            }
+        }
         String url = WEXIN_USER;
         ArrayList userList = new ArrayList();
         try {
@@ -92,8 +103,48 @@ public class WechatResourceService {
             USERLIST = userList;
             for (int i = 0; i < userList.size();i ++ ){
                 String key = (String) ((HashMap)userList.get(i)).get("userid");
-                USERMAP.put(key,userList.get(i));
+                USERMAP.put(key, (HashMap) userList.get(i));
             }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return userList;
+    }
+
+    public ArrayList getMembersByDepartment(String departmentId){
+        requestCount++;
+        if (DEPARTMENTMAP.get(departmentId) != null){
+            if (requestCount < 20) {
+                return DEPARTMENTMAP.get(departmentId);
+            }else {
+                requestCount = 0;
+            }
+        }
+        String url = WEXIN_USER;
+        ArrayList userList = new ArrayList();
+        try {
+            URL obj = new URL(url.replace("#ACCESS_TOKEN#", getAccessToken())
+                    .replace("#DEPARTMENT_ID#", departmentId+"")
+                    .replace("#FETCH_CHILD#", "1")
+                    .replace("#STATUS#","0"));
+
+            HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+            con.setRequestMethod("GET");
+
+            InputStreamReader insr = new InputStreamReader(con.getInputStream());
+            // 读取服务器的响应内容并显示
+            int respInt = insr.read();
+            StringBuffer result = new StringBuffer();
+            while (respInt != -1) {
+                result.append((char)respInt);
+                respInt = insr.read();
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            HashMap resultMap =  mapper.readValue(result.toString(), HashMap.class);
+            userList = (ArrayList) resultMap.get("userlist");
+            DEPARTMENTMAP.put(departmentId+"",userList);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
