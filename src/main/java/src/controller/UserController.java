@@ -18,10 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by wyiss on 15/12/23.
@@ -121,31 +118,18 @@ public class UserController {
 
     //当前user信息
     @RequestMapping(value = "users/currentuser")
-    public HashMap user(@RequestParam String code, HttpServletResponse response, HttpServletRequest request){
-        HashMap result = new HashMap();
+    public String user(@RequestParam String code, HttpServletResponse response, HttpServletRequest request){
         String userId = wechatResourceService.getCurrentUser(code);
         wechatResourceService.getMembers();
         response.addCookie(new Cookie("X_CURRENT_USER_ID",userId));
-        for (int i = 0;i < wechatResourceService.USERLIST.size();i++){
-            if (userId.equals(wechatResourceService.USERLIST.get(i).get("userid"))){
-                response.addCookie(new Cookie("X_CURRENT_USER_ID",userId));
-                result.put("user", wechatResourceService.USERLIST.get(i)) ;
-            }
-        }
-        ArrayList recordList = (ArrayList) recordRepository.findAll();
-        int badgeCount = 0;
-        int badgedCount = 0;
-
-        for(int i = 0; i < recordList.size();i++){
-            String toUser = ((Record)recordList.get(i)).getToUser();
-            String fromUser = ((Record)recordList.get(i)).getToUser();
-            if (userId.equals(toUser)) badgedCount++;
-            if (userId.equals(fromUser)) badgeCount++;
-        }
-        result.put("badgeCount",badgeCount);
-        result.put("badgedCount",badgedCount);
-
-       return result;
+        return userId;
+//        for (int i = 0;i < wechatResourceService.USERLIST.size();i++){
+//            if (userId.equals(wechatResourceService.USERLIST.get(i).get("userid"))){
+//                response.addCookie(new Cookie("X_CURRENT_USER_ID",userId));
+//                return  wechatResourceService.USERLIST.get(i);
+//            }
+//        }
+//       return null;
     }
 
     //获取所有user
@@ -156,12 +140,16 @@ public class UserController {
 
     //获取所有user
     @RequestMapping(value = "users/{userId:.+}/department")
-    public ArrayList userlistByDepartment(@PathVariable("userId") String user,HttpServletResponse response,HttpServletRequest request){
+    public Set userlistByDepartment(@PathVariable("userId") String user,HttpServletResponse response,HttpServletRequest request){
         wechatResourceService.getMembers();
         ArrayList departments = (ArrayList) wechatResourceService.USERMAP.get(user).get("department");
-        ArrayList result = new ArrayList();
+        Set result = new HashSet();
+
         for (int i = 0;i < departments.size();i++){
-            result.add(wechatResourceService.getMembersByDepartment(departments.get(i)+""));
+            ArrayList temp = wechatResourceService.getMembersByDepartment(departments.get(i)+"");
+            for (int j = 0;j < temp.size();j++) {
+                result.add(temp.get(j));
+            }
         }
         return result;
     }
@@ -169,12 +157,27 @@ public class UserController {
     //根据userId获取userinfo
     @RequestMapping(value = "users/{userId:.+}")
     public HashMap userInfo(@PathVariable("userId") String userId){
+        HashMap result = new HashMap();
+        wechatResourceService.getMembers();
         for (int i = 0;i < wechatResourceService.USERLIST.size();i++){
             if (userId.equals(wechatResourceService.USERLIST.get(i).get("userid"))){
-                return wechatResourceService.USERLIST.get(i);
+                result =  wechatResourceService.USERLIST.get(i);
             }
         }
-        return null;
+        ArrayList recordList = (ArrayList) recordRepository.findAll();
+        int badgeCount = 0;
+        int badgedCount = 0;
+
+        for(int i = 0; i < recordList.size();i++){
+            String toUser = ((Record)recordList.get(i)).getToUser();
+            String fromUser = ((Record)recordList.get(i)).getFromUser();
+            if (userId.equals(toUser)) badgedCount++;
+            if (userId.equals(fromUser)) badgeCount++;
+        }
+        result.put("badgeCount",badgeCount);
+        result.put("badgedCount",badgedCount);
+
+        return result;
     }
 
     //获取当前user的所有徽章
@@ -205,8 +208,8 @@ public class UserController {
         for (int i = 0;i < badgelist.size();i ++){
             HashMap recordMap = new HashMap();
             recordMap.put("id",badgelist.get(i).getId());
-            recordMap.put("toUser",badgelist.get(i).getToUser());
-            recordMap.put("fromUser",wechatResourceService.USERMAP.get(badgelist.get(i).getFromUser()));
+            recordMap.put("toUser",wechatResourceService.USERMAP.get(badgelist.get(i).getToUser()));
+            recordMap.put("fromUser",badgelist.get(i).getFromUser());
             recordMap.put("badge",badgelist.get(i).getBadge());
             recordMap.put("comment",badgelist.get(i).getComment());
             recordMap.put("dateCreated",badgelist.get(i).getDateCreated());
